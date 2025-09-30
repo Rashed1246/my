@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>موقعي الشخصي — لوحة تحكم</title>
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --accent: #06b6d4;
+      --muted: #9aa4b2;
+      --glass: rgba(255, 255, 255, 0.03);
+      --radius: 14px;
+      --transition: 200ms;
+      --font: 'Segoe UI', Tahoma, system-ui, "Noto Naskh Arabic", sans-serif;
+    }
+
+    body.light {
+      --bg: #f5f7fa;
+      --card: #fff;
+      --accent: #ef4444;
+      --muted: #555;
+      --glass: rgba(0, 0, 0, 0.05);
+      background: linear-gradient(180deg, #fdfdfd, #f0f0f0);
+      color: #111;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: #e6eef6;
+      font-family: var(--font);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      height: 100vh;
+      padding: 20px
+    }
+
+    header {
+      grid-column: 1/-1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: var(--glass);
+      border-radius: 12px
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(90deg, var(--accent), #7c3aed);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff
+    }
+
+    .brand h1 {
+      font-size: 16px;
+      margin: 0
+    }
+
+    .brand p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    main {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      padding: 18px;
+      border-radius: 12px;
+      overflow: auto
+    }
+
+    .editor {
+      min-height: 60vh;
+      padding: 12px;
+      background: #071526;
+      border-radius: 10px;
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      resize: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    button {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition)
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6)
+    }
+
+    button.primary {
+      background: linear-gradient(90deg, var(--accent), #7c3aed);
+      color: #021022;
+      font-weight: 700
+    }
+
+    aside {
+      background: linear-gradient(180deg, #071226, #071320);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: stretch
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px;
+      border-radius: 10px
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      background: transparent;
+      color: inherit
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .switch {
+      width: 46px;
+      height: 26px;
+      background: #0b1220;
+      border-radius: 999px;
+      position: relative;
+      padding: 3px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .knob {
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      transition: left var(--transition);
+      left: 3px
+    }
+
+    .switch.on {
+      background: linear-gradient(90deg, #06b6d4, #7c3aed)
+    }
+
+    .switch.on .knob {
+      left: 25px
+    }
+
+    small {
+      color: var(--muted);
+      display: block;
+      margin-top: 6px;
+      font-size: 12px
+    }
+
+    .meta {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .stat .value {
+      font-size: 18px;
+      color: #e6f8fb;
+      font-weight: 700
+    }
+
+    footer {
+      grid-column: 1/-1;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 4px
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 26px;
+      background: #021526;
+      color: #dff7fb;
+      padding: 10px 14px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(2, 6, 23, 0.6);
+      display: none
+    }
+
+    @media(max-width:880px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .app aside {
+        order: 2
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app" role="application">
+    <header>
+      <div class="brand">
+        <div class="logo" id="logoTxt">م</div>
+        <div>
+          <h1 contenteditable="true" id="siteName">موقعي الشخصي</h1>
+          <p id="siteTag">لوحة تحكم كاملة قابلة للتعديل</p>
+        </div>
+      </div>
+      <div class="meta">
+        <div id="clock">--:--:--</div>
+        <div id="date">--/--/----</div>
+      </div>
+    </header>
+
+    <main>
+      <div class="controls">
+        <button class="primary" id="saveBtn">حفظ (محلي)</button>
+        <button id="downloadBtn">تنزيل HTML</button>
+        <button id="clearBtn">مسح المحتوى</button>
+        <button id="timeBtn">أظهر التاريخ والوقت</button>
+        <button id="locBtn">احصل على الموقع</button>
+        <button id="themeBtn">تبديل الليل/النهار</button>
+      </div>
+      <div class="editor" id="editor" contenteditable="true">
+        اكتب هنا. هذا محرر نص كامل، يمكنك تغيير النص، الضغط على حفظ ثم إعادة تحميل الصفحة لرؤية البيانات المحفوظة.
+      </div>
+      <div class="controls" style="margin-top:12px;">
+        <label>حجم الخط:
+          <select id="fontSize">
+            <option value="14px">14px</option>
+            <option value="16px" selected>16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="22px">22px</option>
+            <option value="24px">24px</option>
+          </select>
+        </label>
+        <label>نوع الخط:
+          <select id="fontFamily">
+            <option value="'Segoe UI',Tahoma,system-ui">Segoe UI</option>
+            <option value="'Tahoma',sans-serif">Tahoma</option>
+            <option value="'Noto Naskh Arabic',serif" selected>Noto Naskh Arabic</option>
+            <option value="'Cairo',sans-serif">Cairo</option>
+            <option value="'Amiri',serif">Amiri</option>
+          </select>
+        </label>
+      </div>
+    </main>
+
+    <aside>
+      <div class="card">
+        <label>اسم الموقع (قابل للتعديل)</label>
+        <input type="text" id="siteInput" placeholder="اكتب اسم الموقع">
+        <small>اضغط حفظ ليتم تخزينه محلياً</small>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <label>حالة الموقع</label>
+          <div class="toggle">
+            <div id="statusText" class="meta">غير معروف</div>
+            <div id="switch" class="switch" role="switch" aria-checked="false">
+              <div class="knob"></div>
+            </div>
+          </div>
+        </div>
+        <small id="statusInfo">لم يتم تحديد الحالة.</small>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <label>معلومات الموقع</label>
+          <div>
+            <div class="meta" id="coords">خط الطول: - , خط العرض: -</div>
+            <div class="meta" id="accuracy"></div>
+          </div>
+        </div>
+        <small id="locNote">اضغط "احصل على الموقع" لاختبار واجهة الموقع الجغرافي.</small>
+      </div>
+
+      <div class="card stat">
+        <div class="row"><label>حجم النص المحفوظ</label>
+          <div class="value" id="len">0</div>
+        </div>
+        <div class="row"><label>آخر حفظ</label>
+          <div class="meta" id="lastSaved">لم يحفظ بعد</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="toast" id="toast">تم</div>
+    <footer>نسخة نهائية — تعمل محلياً وعلى جميع الأجهزة</footer>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const saveBtn = document.getElementById('saveBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const timeBtn = document.getElementById('timeBtn');
+    const locBtn = document.getElementById('locBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const toast = document.getElementById('toast');
+    const len = document.getElementById('len');
+    const lastSaved = document.getElementById('lastSaved');
+    const siteInput = document.getElementById('siteInput');
+    const siteName = document.getElementById('siteName');
+    const logoTxt = document.getElementById('logoTxt');
+    const clock = document.getElementById('clock');
+    const dateBox = document.getElementById('date');
+    const coords = document.getElementById('coords');
+    const accuracy = document.getElementById('accuracy');
+    const statusText = document.getElementById('statusText');
+    const statusInfo = document.getElementById('statusInfo');
+    const sw = document.getElementById('switch');
+    const fontSize = document.getElementById('fontSize');
+    const fontFamily = document.getElementById('fontFamily');
+
+    function showToast(txt, ms = 1800) { toast.textContent = txt; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none' }, ms); }
+    function updateLen() { len.textContent = editor.textContent.trim().length }
+
+    function load() {
+      const content = localStorage.getItem('app:content');
+      const name = localStorage.getItem('app:siteName');
+      const savedAt = localStorage.getItem('app:lastSaved');
+      const size = localStorage.getItem('app:fontSize');
+      const font = localStorage.getItem('app:fontFamily');
+
+      if (content) editor.innerHTML = content;
+      if (name) { siteName.textContent = name; siteInput.value = name; logoTxt.textContent = name.trim().slice(0, 1) }
+      if (savedAt) lastSaved.textContent = new Date(parseInt(savedAt)).toLocaleString('ar-EG');
+      if (size) editor.style.fontSize = size; fontSize.value = size;
+      if (font) editor.style.fontFamily = font; fontFamily.value = font;
+      updateLen();
+    }
+
+    // حفظ
+    saveBtn.addEventListener('click', () => {
+      localStorage.setItem('app:content', editor.innerHTML);
+      const name = siteInput.value.trim() || siteName.textContent.trim();
+      localStorage.setItem('app:siteName', name);
+      localStorage.setItem('app:lastSaved', Date.now());
+      localStorage.setItem('app:fontSize', editor.style.fontSize);
+      localStorage.setItem('app:fontFamily', editor.style.fontFamily);
+      siteName.textContent = name;
+      logoTxt.textContent = name.slice(0, 1) || 'م';
+      lastSaved.textContent = new Date().toLocaleString('ar-EG');
+      showToast('تم الحفظ محلياً');
+      updateLen();
+    });
+
+    // تنزيل html
+    downloadBtn.addEventListener('click', () => {
+      const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${(siteInput.value || siteName.textContent)}</title></head><body style="font-size:${editor.style.fontSize};font-family:${editor.style.fontFamily}">${editor.innerHTML}</body></html>`;
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (siteInput.value || 'page') + '.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      showToast('تم تنزيل الملف');
+    });
+
+    // مسح
+    clearBtn.addEventListener('click', () => {
+      if (!confirm('مسح المحتوى؟')) return;
+      editor.innerHTML = ''; updateLen(); showToast('تم المسح');
+    });
+
+    // عرض الوقت
+    timeBtn.addEventListener('click', () => { alert('التاريخ والوقت: ' + new Date().toLocaleString('ar-EG')); });
+
+    // الموقع الجغرافي
+    locBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) { showToast('المتصفح لا يدعم الموقع'); return; }
+      showToast('جاري طلب الموقع...');
+      navigator.geolocation.getCurrentPosition((p) => {
+        coords.textContent = `خط العرض: ${p.coords.latitude.toFixed(5)} , خط الطول: ${p.coords.longitude.toFixed(5)}`;
+        accuracy.textContent = `دقة: ${p.coords.accuracy} متر`;
+        statusText.textContent = 'مفعّل';
+        statusInfo.textContent = 'تم الحصول على الموقع بنجاح';
+        sw.classList.add('on'); sw.setAttribute('aria-checked', 'true');
+        showToast('تم الحصول على الموقع');
+      }, (err) => {
+        coords.textContent = 'فشل الحصول على الموقع';
+        accuracy.textContent = err.message;
+        statusText.textContent = 'موقوف';
+        statusInfo.textContent = 'الرجاء السماح بالوصول للموقع';
+        sw.classList.remove('on'); sw.setAttribute('aria-checked', 'false');
+        showToast('فشل الحصول على الموقع');
+      }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+
+    // تبديل يدوي للحالة
+    sw.addEventListener('click', () => {
+      const on = sw.classList.toggle('on');
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      statusText.textContent = on ? 'مفعّل' : 'موقوف';
+      statusInfo.textContent = on ? 'وضع التشغيل يدوياً' : 'وضع الإيقاف يدوياً';
+      showToast(on ? 'تم تشغيل' : 'تم إيقاف');
+    });
+
+    // تحديث الساعة والتاريخ
+    function tick() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('ar-EG');
+      dateBox.textContent = now.toLocaleDateString('ar-EG', { year: "numeric", month: "2-digit", day: "2-digit" });
+      requestAnimationFrame(() => setTimeout(tick, 900));
+    }
+    tick();
+
+    // تبديل الليل/النهار
+    themeBtn.addEventListener('click', () => { document.body.classList.toggle('light'); showToast(document.body.classList.contains('light') ? "وضع النهار" : "وضع الليل"); });
+
+    // تحديث طول النص عند الكتابة
+    editor.addEventListener('input', updateLen);
+    siteInput.addEventListener('input', () => { siteName.textContent = siteInput.value || 'موقعي'; logoTxt.textContent = (siteInput.value || 'م').slice(0, 1) });
+
+    // تغيير حجم الخط ونوع الخط
+    fontSize.addEventListener('change', () => { editor.style.fontSize = fontSize.value; });
+    fontFamily.addEventListener('change', () => { editor.style.fontFamily = fontFamily.value; });
+
+    // حفظ تلقائي كل 30 ثانية
+    setInterval(() => {
+      localStorage.setItem('app:content', editor.innerHTML);
+      localStorage.setItem('app:siteName', siteInput.value.trim() || siteName.textContent.trim());
+      localStorage.setItem('app:lastSaved', Date.now());
+      localStorage.setItem('app:fontSize', editor.style.fontSize);
+      localStorage.setItem('app:fontFamily', editor.style.fontFamily);
+      lastSaved.textContent = new Date().toLocaleString('ar-EG');
+    }, 30000);
+
+    // اختصار Ctrl+S للحفظ
+    window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveBtn.click(); } });
+
+    load();
+  </script>
+</body>
+
+</html>
