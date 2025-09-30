@@ -12,8 +12,8 @@
       --accent: #06b6d4;
       --muted: #9aa4b2;
       --glass: rgba(255, 255, 255, 0.03);
-      --radius: 14px;
-      --transition: 200ms;
+      --radius: 12px;
+      --transition: 180ms;
       --font: 'Segoe UI', Tahoma, system-ui, "Noto Naskh Arabic", sans-serif;
     }
 
@@ -21,8 +21,8 @@
       --bg: #f5f7fa;
       --card: #fff;
       --accent: #ef4444;
-      --muted: #555;
-      --glass: rgba(0, 0, 0, 0.05);
+      --muted: #444;
+      --glass: rgba(0, 0, 0, 0.06);
       background: linear-gradient(180deg, #fdfdfd, #f0f0f0);
       color: #111;
     }
@@ -37,15 +37,15 @@
       margin: 0;
       background: var(--bg);
       color: #e6eef6;
-      font-family: var(--font);
+      font-family: var(--font)
     }
 
     .app {
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 18px;
-      height: 100vh;
-      padding: 20px
+      grid-template-columns: 1fr 360px;
+      gap: 14px;
+      min-height: 100vh;
+      padding: 14px
     }
 
     header {
@@ -53,9 +53,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 18px;
+      padding: 12px;
       background: var(--glass);
-      border-radius: 12px
+      border-radius: 12px;
+      flex-wrap: wrap;
+      gap: 8px
     }
 
     .brand {
@@ -89,41 +91,28 @@
 
     main {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-      padding: 18px;
+      padding: 12px;
       border-radius: 12px;
       overflow: auto
-    }
-
-    .editor {
-      min-height: 60vh;
-      padding: 12px;
-      background: #071526;
-      border-radius: 10px;
-      outline: none;
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      resize: none;
     }
 
     .controls {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 12px
+      margin-bottom: 10px
     }
 
     button {
       background: var(--card);
       border: 1px solid rgba(255, 255, 255, 0.03);
       color: var(--muted);
-      padding: 8px 12px;
+      padding: 8px 10px;
       border-radius: 10px;
       cursor: pointer;
-      transition: transform var(--transition), box-shadow var(--transition)
-    }
-
-    button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6)
+      transition: transform var(--transition), box-shadow var(--transition);
+      min-width: 110px;
+      text-align: center
     }
 
     button.primary {
@@ -132,21 +121,34 @@
       font-weight: 700
     }
 
+    .editor {
+      min-height: 50vh;
+      padding: 12px;
+      background: #071526;
+      border-radius: 10px;
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow: auto
+    }
+
     aside {
       background: linear-gradient(180deg, #071226, #071320);
-      padding: 18px;
+      padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.03);
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      align-items: stretch
+      gap: 12px;
+      align-items: stretch;
+      overflow: auto
     }
 
     .card {
       background: rgba(255, 255, 255, 0.02);
-      padding: 12px;
-      border-radius: 10px
+      padding: 10px;
+      border-radius: 8px
     }
 
     .row {
@@ -171,12 +173,6 @@
       color: inherit
     }
 
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px
-    }
-
     .switch {
       width: 46px;
       height: 26px;
@@ -195,8 +191,8 @@
       border-radius: 50%;
       position: absolute;
       top: 3px;
-      transition: left var(--transition);
-      left: 3px
+      left: 3px;
+      transition: left var(--transition)
     }
 
     .switch.on {
@@ -205,13 +201,6 @@
 
     .switch.on .knob {
       left: 25px
-    }
-
-    small {
-      color: var(--muted);
-      display: block;
-      margin-top: 6px;
-      font-size: 12px
     }
 
     .meta {
@@ -236,29 +225,113 @@
       text-align: center;
       color: var(--muted);
       font-size: 12px;
-      padding-top: 4px
+      padding-top: 6px
     }
 
     .toast {
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
-      bottom: 26px;
+      bottom: 20px;
       background: #021526;
       color: #dff7fb;
       padding: 10px 14px;
       border-radius: 10px;
       box-shadow: 0 8px 20px rgba(2, 6, 23, 0.6);
-      display: none
+      display: none;
+      z-index: 9999
     }
 
+    /* تاريخ/وقت بمساحة صغيرة */
+    .header-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    /* مودال المحفوظات */
+    #historyModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 9999
+    }
+
+    #historyModal .panel {
+      width: min(920px, 100%);
+      max-height: 80vh;
+      background: var(--card);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto
+    }
+
+    #historyModal h3 {
+      margin: 0 0 10px 0;
+      color: #fff
+    }
+
+    .history-item {
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center
+    }
+
+    .history-item .meta {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 70%
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px
+    }
+
+    /* استجابة موبايل */
     @media(max-width:880px) {
       .app {
         grid-template-columns: 1fr;
+        padding: 10px;
+        min-height: 100vh
       }
 
-      .app aside {
-        order: 2
+      aside {
+        order: 2;
+        max-height: 260px
+      }
+
+      main {
+        order: 1
+      }
+
+      .controls button {
+        flex: 1 1 45%;
+        min-width: auto
+      }
+
+      .editor {
+        min-height: 40vh;
+        font-size: 15px
+      }
+
+      header {
+        justify-content: center
+      }
+
+      #historyModal .panel {
+        padding: 10px
       }
     }
   </style>
@@ -271,45 +344,49 @@
         <div class="logo" id="logoTxt">م</div>
         <div>
           <h1 contenteditable="true" id="siteName">موقعي الشخصي</h1>
-          <p id="siteTag">لوحة تحكم كاملة قابلة للتعديل</p>
+          <p id="siteTag">لوحة تحكم قابلة للتعديل</p>
         </div>
       </div>
-      <div class="meta">
+      <div class="header-meta">
         <div id="clock">--:--:--</div>
         <div id="date">--/--/----</div>
       </div>
     </header>
 
     <main>
-      <div class="controls">
+      <div class="controls" id="topControls">
         <button class="primary" id="saveBtn">حفظ (محلي)</button>
         <button id="downloadBtn">تنزيل HTML</button>
         <button id="clearBtn">مسح المحتوى</button>
         <button id="timeBtn">أظهر التاريخ والوقت</button>
         <button id="locBtn">احصل على الموقع</button>
-        <button id="themeBtn">تبديل الليل/النهار</button>
+        <button id="themeBtn">تبديل ليل/نهار</button>
+        <button id="newPageBtn">صفحة جديدة</button>
+        <button id="historyBtn">المحفوظات</button>
       </div>
-      <div class="editor" id="editor" contenteditable="true">
+
+      <div class="editor" id="editor" contenteditable="true" aria-label="محرر النص">
         اكتب هنا. هذا محرر نص كامل، يمكنك تغيير النص، الضغط على حفظ ثم إعادة تحميل الصفحة لرؤية البيانات المحفوظة.
       </div>
+
       <div class="controls" style="margin-top:12px;">
-        <label>حجم الخط:
-          <select id="fontSize">
+        <label style="min-width:120px">حجم الخط:
+          <select id="fontSize" style="margin-left:8px">
             <option value="14px">14px</option>
             <option value="16px" selected>16px</option>
             <option value="18px">18px</option>
             <option value="20px">20px</option>
             <option value="22px">22px</option>
-            <option value="24px">24px</option>
           </select>
         </label>
-        <label>نوع الخط:
-          <select id="fontFamily">
+
+        <label style="min-width:180px">نوع الخط:
+          <select id="fontFamily" style="margin-left:8px">
             <option value="'Segoe UI',Tahoma,system-ui">Segoe UI</option>
             <option value="'Tahoma',sans-serif">Tahoma</option>
             <option value="'Noto Naskh Arabic',serif" selected>Noto Naskh Arabic</option>
             <option value="'Cairo',sans-serif">Cairo</option>
-            <option value="'Amiri',serif">Amiri</option>
+            <option value="'Courier New',monospace">Courier New</option>
           </select>
         </label>
       </div>
@@ -318,7 +395,7 @@
     <aside>
       <div class="card">
         <label>اسم الموقع (قابل للتعديل)</label>
-        <input type="text" id="siteInput" placeholder="اكتب اسم الموقع">
+        <input type="text" id="siteInput" placeholder="اكتب اسم الموقع" />
         <small>اضغط حفظ ليتم تخزينه محلياً</small>
       </div>
 
@@ -339,7 +416,7 @@
         <div class="row">
           <label>معلومات الموقع</label>
           <div>
-            <div class="meta" id="coords">خط الطول: - , خط العرض: -</div>
+            <div class="meta" id="coords">خط العرض: - , خط الطول: -</div>
             <div class="meta" id="accuracy"></div>
           </div>
         </div>
@@ -356,11 +433,19 @@
       </div>
     </aside>
 
+    <div id="historyModal" aria-hidden="true">
+      <div class="panel">
+        <h3>المحفوظات <button id="closeHistory" style="float:left">إغلاق</button></h3>
+        <div id="historyList"></div>
+      </div>
+    </div>
+
     <div class="toast" id="toast">تم</div>
-    <footer>نسخة نهائية — تعمل محلياً وعلى جميع الأجهزة</footer>
+    <footer>نسخة نهائية — جاهزة للنشر</footer>
   </div>
 
   <script>
+    /* عناصر */
     const editor = document.getElementById('editor');
     const saveBtn = document.getElementById('saveBtn');
     const downloadBtn = document.getElementById('downloadBtn');
@@ -368,8 +453,10 @@
     const timeBtn = document.getElementById('timeBtn');
     const locBtn = document.getElementById('locBtn');
     const themeBtn = document.getElementById('themeBtn');
+    const newPageBtn = document.getElementById('newPageBtn');
+    const historyBtn = document.getElementById('historyBtn');
     const toast = document.getElementById('toast');
-    const len = document.getElementById('len');
+    const lenEl = document.getElementById('len');
     const lastSaved = document.getElementById('lastSaved');
     const siteInput = document.getElementById('siteInput');
     const siteName = document.getElementById('siteName');
@@ -383,124 +470,182 @@
     const sw = document.getElementById('switch');
     const fontSize = document.getElementById('fontSize');
     const fontFamily = document.getElementById('fontFamily');
+    const historyModal = document.getElementById('historyModal');
+    const historyListEl = document.getElementById('historyList');
+    const closeHistory = document.getElementById('closeHistory');
 
-    function showToast(txt, ms = 1800) { toast.textContent = txt; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none' }, ms); }
-    function updateLen() { len.textContent = editor.textContent.trim().length }
+    let historyList = JSON.parse(localStorage.getItem('app:history') || '[]');
 
+    /* مساعدة */
+    function showToast(txt, ms = 1600) { toast.textContent = txt; toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', ms); }
+    function updateLen() { lenEl.textContent = editor.textContent.trim().length; }
+
+    /* تحميل الإعدادات والمحتوى */
     function load() {
       const content = localStorage.getItem('app:content');
       const name = localStorage.getItem('app:siteName');
       const savedAt = localStorage.getItem('app:lastSaved');
-      const size = localStorage.getItem('app:fontSize');
-      const font = localStorage.getItem('app:fontFamily');
+      const size = localStorage.getItem('app:fontSize') || '16px';
+      const font = localStorage.getItem('app:fontFamily') || getComputedStyle(document.documentElement).getPropertyValue('--font').trim();
 
       if (content) editor.innerHTML = content;
       if (name) { siteName.textContent = name; siteInput.value = name; logoTxt.textContent = name.trim().slice(0, 1) }
       if (savedAt) lastSaved.textContent = new Date(parseInt(savedAt)).toLocaleString('ar-EG');
-      if (size) editor.style.fontSize = size; fontSize.value = size;
-      if (font) editor.style.fontFamily = font; fontFamily.value = font;
+      editor.style.fontSize = size; fontSize.value = size;
+      editor.style.fontFamily = font; fontFamily.value = font;
+      const theme = localStorage.getItem('app:theme');
+      if (theme === 'light') document.body.classList.add('light');
+      const statusOn = localStorage.getItem('app:statusOn') === 'true';
+      if (statusOn) { sw.classList.add('on'); sw.setAttribute('aria-checked', 'true'); statusText.textContent = 'مفعّل'; statusInfo.textContent = 'وضع التشغيل محفوظ' }
       updateLen();
     }
 
-    // حفظ
+    /* حفظ */
     saveBtn.addEventListener('click', () => {
-      localStorage.setItem('app:content', editor.innerHTML);
+      const content = editor.innerHTML;
+      localStorage.setItem('app:content', content);
       const name = siteInput.value.trim() || siteName.textContent.trim();
       localStorage.setItem('app:siteName', name);
-      localStorage.setItem('app:lastSaved', Date.now());
-      localStorage.setItem('app:fontSize', editor.style.fontSize);
-      localStorage.setItem('app:fontFamily', editor.style.fontFamily);
+      const now = Date.now();
+      localStorage.setItem('app:lastSaved', now);
+      localStorage.setItem('app:fontSize', editor.style.fontSize || '16px');
+      localStorage.setItem('app:fontFamily', editor.style.fontFamily || fontFamily.value);
+      lastSaved.textContent = new Date(now).toLocaleString('ar-EG');
       siteName.textContent = name;
       logoTxt.textContent = name.slice(0, 1) || 'م';
-      lastSaved.textContent = new Date().toLocaleString('ar-EG');
+      // إضافة للمحفوظات إذا محتوى جديد
+      if (historyList.length === 0 || historyList[historyList.length - 1].content !== content) {
+        historyList.push({ time: now, content });
+        if (historyList.length > 100) historyList.shift(); // احتفظ بآخر 100
+        localStorage.setItem('app:history', JSON.stringify(historyList));
+      }
       showToast('تم الحفظ محلياً');
       updateLen();
     });
 
-    // تنزيل html
+    /* تنزيل */
     downloadBtn.addEventListener('click', () => {
-      const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${(siteInput.value || siteName.textContent)}</title></head><body style="font-size:${editor.style.fontSize};font-family:${editor.style.fontFamily}">${editor.innerHTML}</body></html>`;
+      const title = (siteInput.value.trim() || siteName.textContent.trim() || 'page');
+      const style = `<style>body{font-size:${editor.style.fontSize || '16px'};font-family:${editor.style.fontFamily || 'inherit'};direction:rtl}</style>`;
+      const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${title}</title>${style}</head><body>${editor.innerHTML}</body></html>`;
       const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (siteInput.value || 'page') + '.html';
-      document.body.appendChild(a); a.click(); a.remove();
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = title + '.html'; document.body.appendChild(a); a.click(); a.remove();
       showToast('تم تنزيل الملف');
     });
 
-    // مسح
+    /* مسح */
     clearBtn.addEventListener('click', () => {
       if (!confirm('مسح المحتوى؟')) return;
       editor.innerHTML = ''; updateLen(); showToast('تم المسح');
     });
 
-    // عرض الوقت
-    timeBtn.addEventListener('click', () => { alert('التاريخ والوقت: ' + new Date().toLocaleString('ar-EG')); });
+    /* صفحة جديدة */
+    newPageBtn.addEventListener('click', () => {
+      if (!confirm('فتح صفحة جديدة سيمسح المحتوى الحالي، هل تريد المتابعة؟')) return;
+      editor.innerHTML = ''; siteInput.value = ''; siteName.textContent = 'موقعي الشخصي'; logoTxt.textContent = 'م'; updateLen(); showToast('صفحة جديدة جاهزة');
+    });
 
-    // الموقع الجغرافي
+    /* الوقت والتاريخ */
+    function tick() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('ar-EG');
+      dateBox.textContent = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    setInterval(tick, 1000); tick();
+
+    /* الموقع الجغرافي */
     locBtn.addEventListener('click', () => {
       if (!navigator.geolocation) { showToast('المتصفح لا يدعم الموقع'); return; }
       showToast('جاري طلب الموقع...');
       navigator.geolocation.getCurrentPosition((p) => {
         coords.textContent = `خط العرض: ${p.coords.latitude.toFixed(5)} , خط الطول: ${p.coords.longitude.toFixed(5)}`;
         accuracy.textContent = `دقة: ${p.coords.accuracy} متر`;
-        statusText.textContent = 'مفعّل';
-        statusInfo.textContent = 'تم الحصول على الموقع بنجاح';
-        sw.classList.add('on'); sw.setAttribute('aria-checked', 'true');
+        statusText.textContent = 'مفعّل'; statusInfo.textContent = 'تم الحصول على الموقع بنجاح';
+        sw.classList.add('on'); sw.setAttribute('aria-checked', 'true'); localStorage.setItem('app:statusOn', 'true');
         showToast('تم الحصول على الموقع');
       }, (err) => {
         coords.textContent = 'فشل الحصول على الموقع';
         accuracy.textContent = err.message;
-        statusText.textContent = 'موقوف';
-        statusInfo.textContent = 'الرجاء السماح بالوصول للموقع';
-        sw.classList.remove('on'); sw.setAttribute('aria-checked', 'false');
+        statusText.textContent = 'موقوف'; statusInfo.textContent = 'الرجاء السماح بالوصول للموقع';
+        sw.classList.remove('on'); sw.setAttribute('aria-checked', 'false'); localStorage.setItem('app:statusOn', 'false');
         showToast('فشل الحصول على الموقع');
       }, { enableHighAccuracy: true, timeout: 10000 });
     });
 
-    // تبديل يدوي للحالة
+    /* تبديل حالة */
     sw.addEventListener('click', () => {
       const on = sw.classList.toggle('on');
       sw.setAttribute('aria-checked', on ? 'true' : 'false');
       statusText.textContent = on ? 'مفعّل' : 'موقوف';
       statusInfo.textContent = on ? 'وضع التشغيل يدوياً' : 'وضع الإيقاف يدوياً';
+      localStorage.setItem('app:statusOn', on ? 'true' : 'false');
       showToast(on ? 'تم تشغيل' : 'تم إيقاف');
     });
 
-    // تحديث الساعة والتاريخ
-    function tick() {
-      const now = new Date();
-      clock.textContent = now.toLocaleTimeString('ar-EG');
-      dateBox.textContent = now.toLocaleDateString('ar-EG', { year: "numeric", month: "2-digit", day: "2-digit" });
-      requestAnimationFrame(() => setTimeout(tick, 900));
-    }
-    tick();
+    /* تبديل الليل/النهار */
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      const isLight = document.body.classList.contains('light');
+      localStorage.setItem('app:theme', isLight ? 'light' : 'dark');
+      showToast(isLight ? 'وضع النهار' : 'وضع الليل');
+    });
 
-    // تبديل الليل/النهار
-    themeBtn.addEventListener('click', () => { document.body.classList.toggle('light'); showToast(document.body.classList.contains('light') ? "وضع النهار" : "وضع الليل"); });
-
-    // تحديث طول النص عند الكتابة
-    editor.addEventListener('input', updateLen);
-    siteInput.addEventListener('input', () => { siteName.textContent = siteInput.value || 'موقعي'; logoTxt.textContent = (siteInput.value || 'م').slice(0, 1) });
-
-    // تغيير حجم الخط ونوع الخط
+    /* تغيير خط وحجم */
     fontSize.addEventListener('change', () => { editor.style.fontSize = fontSize.value; });
     fontFamily.addEventListener('change', () => { editor.style.fontFamily = fontFamily.value; });
 
-    // حفظ تلقائي كل 30 ثانية
+    /* محفوظات - واجهة */
+    function renderHistory() {
+      historyList = JSON.parse(localStorage.getItem('app:history') || '[]');
+      historyListEl.innerHTML = '';
+      if (historyList.length === 0) { historyListEl.innerHTML = '<div class="meta">لا توجد محفوظات بعد.</div>'; return; }
+      // اعرض أحدث أولاً
+      const list = historyList.slice().reverse();
+      list.forEach((h, idx) => {
+        const i = document.createElement('div'); i.className = 'history-item';
+        const meta = document.createElement('div'); meta.className = 'meta';
+        meta.textContent = `${new Date(h.time).toLocaleString('ar-EG')} — ${h.content.replace(/(<([^>]+)>)/gi, "").slice(0, 120)}`;
+        const actions = document.createElement('div'); actions.className = 'history-actions';
+        const restore = document.createElement('button'); restore.textContent = 'استرجاع'; restore.className = 'primary';
+        const del = document.createElement('button'); del.textContent = 'حذف';
+        restore.addEventListener('click', () => { editor.innerHTML = h.content; showToast('تم استرجاع المحفوظة'); updateLen(); historyModal.style.display = 'none'; });
+        del.addEventListener('click', () => {
+          const realIndex = historyList.length - 1 - idx;
+          if (!confirm('حذف هذه المحفوظة؟')) return;
+          historyList.splice(realIndex, 1);
+          localStorage.setItem('app:history', JSON.stringify(historyList));
+          renderHistory();
+          showToast('تم الحذف');
+        });
+        actions.appendChild(restore); actions.appendChild(del);
+        i.appendChild(meta); i.appendChild(actions);
+        historyListEl.appendChild(i);
+      });
+    }
+    historyBtn.addEventListener('click', () => { renderHistory(); historyModal.style.display = 'flex'; historyModal.setAttribute('aria-hidden', 'false'); });
+    closeHistory.addEventListener('click', () => { historyModal.style.display = 'none'; historyModal.setAttribute('aria-hidden', 'true'); });
+
+    /* حفظ تلقائي بسيط كل 30 ثانية (لا تضخّم المحفوظات) */
     setInterval(() => {
-      localStorage.setItem('app:content', editor.innerHTML);
+      const curr = editor.innerHTML;
+      localStorage.setItem('app:content', curr);
       localStorage.setItem('app:siteName', siteInput.value.trim() || siteName.textContent.trim());
       localStorage.setItem('app:lastSaved', Date.now());
-      localStorage.setItem('app:fontSize', editor.style.fontSize);
-      localStorage.setItem('app:fontFamily', editor.style.fontFamily);
+      localStorage.setItem('app:fontSize', editor.style.fontSize || '16px');
+      localStorage.setItem('app:fontFamily', editor.style.fontFamily || fontFamily.value);
       lastSaved.textContent = new Date().toLocaleString('ar-EG');
     }, 30000);
 
-    // اختصار Ctrl+S للحفظ
+    /* اختصار Ctrl+S */
     window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveBtn.click(); } });
 
+    /* تهيئة أحداث الكتابة */
+    editor.addEventListener('input', updateLen);
+    siteInput.addEventListener('input', () => { siteName.textContent = siteInput.value || 'موقعي'; logoTxt.textContent = (siteInput.value || 'م').slice(0, 1) });
+
+    /* تهيئة أولية */
     load();
+    updateLen();
   </script>
 </body>
 
