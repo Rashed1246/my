@@ -306,7 +306,7 @@
 
       aside {
         order: 2;
-        max-height: 260px;
+        max-height: 300px;
       }
 
       main {
@@ -383,7 +383,6 @@
     }
 
     @keyframes fadeOut {
-
       0%,
       90% {
         opacity: 1;
@@ -485,6 +484,11 @@
         <small id="locNote">اضغط "احصل على الموقع" لاختبار واجهة الموقع الجغرافي.</small>
       </div>
 
+      <div class="card">
+        <button id="voiceBtn" class="primary">الإملاء الصوتي</button>
+        <small>اضغط لتفعيل الكتابة بالصوت</small>
+      </div>
+
       <div class="card stat">
         <div class="row"><label>حجم النص المحفوظ</label>
           <div class="value" id="len">0</div>
@@ -504,7 +508,6 @@
     <div class="toast" id="toast">تم</div>
     <footer>نسخة نهائية — جاهزة للنشر</footer>
     <script>
-      /* ===================== عناصر ===================== */
       const editor = document.getElementById('editor');
       const saveBtn = document.getElementById('saveBtn');
       const downloadBtn = document.getElementById('downloadBtn');
@@ -514,6 +517,7 @@
       const themeBtn = document.getElementById('themeBtn');
       const newPageBtn = document.getElementById('newPageBtn');
       const historyBtn = document.getElementById('historyBtn');
+      const voiceBtn = document.getElementById('voiceBtn');
       const toast = document.getElementById('toast');
       const lenEl = document.getElementById('len');
       const lastSaved = document.getElementById('lastSaved');
@@ -536,102 +540,76 @@
       localStorage.setItem('userId', userKey.split(':')[2]);
       let historyList = JSON.parse(localStorage.getItem(userKey + ':history') || '[]');
 
-      /* ===================== مساعدة ===================== */
       function showToast(txt, ms = 1600) { toast.textContent = txt; toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', ms); }
       function updateLen() { lenEl.textContent = editor.textContent.trim().length; }
+      function saveContent() { localStorage.setItem(userKey, editor.innerHTML); lastSaved.textContent = new Date().toLocaleString(); addHistory(editor.innerHTML); showToast('تم الحفظ'); updateLen(); }
+      function addHistory(data) { historyList.push({ time: new Date().toLocaleString(), content: data }); localStorage.setItem(userKey + ':history', JSON.stringify(historyList)); }
+      function loadContent() { const data = localStorage.getItem(userKey); if (data) editor.innerHTML = data; updateLen(); }
 
-      /* ===================== تحميل ===================== */
-      function load() {
-        const content = localStorage.getItem(userKey + ':content');
-        const name = localStorage.getItem(userKey + ':siteName');
-        const savedAt = localStorage.getItem(userKey + ':lastSaved');
-        const size = localStorage.getItem(userKey + ':fontSize') || '16px';
-        const font = localStorage.getItem(userKey + ':fontFamily') || getComputedStyle(document.documentElement).getPropertyValue('--font').trim();
-        if (content) editor.innerHTML = content;
-        if (name) { siteName.textContent = name; siteInput.value = name; logoTxt.textContent = name.trim().slice(0, 1); }
-        if (savedAt) lastSaved.textContent = new Date(parseInt(savedAt)).toLocaleString('ar-EG');
-        editor.style.fontSize = size; fontSize.value = size;
-        editor.style.fontFamily = font; fontFamily.value = font;
-        const theme = localStorage.getItem(userKey + ':theme');
-        if (theme === 'light') document.body.classList.add('light');
-        const statusOn = localStorage.getItem(userKey + ':statusOn') === 'true';
-        if (statusOn) { sw.classList.add('on'); sw.setAttribute('aria-checked', 'true'); statusText.textContent = 'مفعّل'; statusInfo.textContent = 'وضع التشغيل محفوظ' }
-        updateLen();
-      }
-
-      /* ===================== حفظ ===================== */
-      saveBtn.addEventListener('click', () => {
-        const content = editor.innerHTML;
-        localStorage.setItem(userKey + ':content', content);
-        const name = siteInput.value.trim() || siteName.textContent.trim();
-        localStorage.setItem(userKey + ':siteName', name);
-        const now = Date.now();
-        localStorage.setItem(userKey + ':lastSaved', now);
-        localStorage.setItem(userKey + ':fontSize', editor.style.fontSize || '16px');
-        localStorage.setItem(userKey + ':fontFamily', editor.style.fontFamily || fontFamily.value);
-        lastSaved.textContent = new Date(now).toLocaleString('ar-EG');
-        siteName.textContent = name; logoTxt.textContent = name.slice(0, 1) || 'م';
-        // إضافة للمحفوظات
-        if (historyList.length === 0 || historyList[historyList.length - 1].content !== content) {
-          historyList.push({ time: now, content });
-          if (historyList.length > 100) historyList.shift();
-          localStorage.setItem(userKey + ':history', JSON.stringify(historyList));
-        }
-        showToast('تم الحفظ محلياً'); updateLen();
+      saveBtn.addEventListener('click', saveContent);
+      downloadBtn.addEventListener('click', () => {
+        const blob = new Blob([editor.innerHTML], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'page.html';
+        a.click();
+        URL.revokeObjectURL(url);
       });
+      clearBtn.addEventListener('click', () => { editor.innerHTML = ''; updateLen(); showToast('تم المسح'); });
+      newPageBtn.addEventListener('click', () => { editor.innerHTML = ''; updateLen(); });
+      themeBtn.addEventListener('click', () => { document.body.classList.toggle('light'); });
+      siteInput.addEventListener('input', () => { siteName.textContent = siteInput.value; localStorage.setItem('siteName', siteInput.value); });
+      sw.addEventListener('click', () => { sw.classList.toggle('on'); statusText.textContent = sw.classList.contains('on') ? 'نشط' : 'متوقف'; statusInfo.textContent = sw.classList.contains('on') ? 'الموقع يعمل' : 'الموقع متوقف'; sw.setAttribute('aria-checked', sw.classList.contains('on')); });
 
-      /* ===================== المحفوظات ===================== */
-      function renderHistory() {
-        historyList = JSON.parse(localStorage.getItem(userKey + ':history') || '[]');
+      historyBtn.addEventListener('click', () => {
         historyListEl.innerHTML = '';
-        if (historyList.length === 0) { historyListEl.innerHTML = '<div class="meta">لا توجد محفوظات بعد.</div>'; return; }
-        const list = historyList.slice().reverse();
-        list.forEach((h, idx) => {
-          const i = document.createElement('div'); i.className = 'history-item';
-          const meta = document.createElement('div'); meta.className = 'meta';
-          meta.textContent = `${new Date(h.time).toLocaleString('ar-EG')} — ${h.content.replace(/(<([^>]+)>)/gi, "").slice(0, 120)}`;
-          const actions = document.createElement('div'); actions.className = 'history-actions';
-          const restore = document.createElement('button'); restore.textContent = 'استرجاع'; restore.className = 'primary';
-          const del = document.createElement('button'); del.textContent = 'حذف';
-          restore.addEventListener('click', () => { editor.innerHTML = h.content; showToast('تم استرجاع المحفوظة'); updateLen(); historyModal.style.display = 'none'; });
-          del.addEventListener('click', () => {
-            const realIndex = historyList.length - 1 - idx;
-            if (!confirm('حذف هذه المحفوظة؟')) return;
-            historyList.splice(realIndex, 1);
-            localStorage.setItem(userKey + ':history', JSON.stringify(historyList));
-            renderHistory();
-            showToast('تم الحذف');
-          });
-          actions.appendChild(restore); actions.appendChild(del); i.appendChild(meta); i.appendChild(actions); historyListEl.appendChild(i);
+        historyList.slice().reverse().forEach((h, i) => {
+          const item = document.createElement('div'); item.className = 'history-item';
+          item.innerHTML = `<div class="meta">${h.time} - ${h.content.substring(0,50)}...</div>
+            <div class="history-actions">
+              <button onclick="editor.innerHTML=historyList[${historyList.length-1-i}].content;updateLen()">عرض</button>
+              <button onclick="historyList.splice(${historyList.length-1-i},1);localStorage.setItem('${userKey}:history',JSON.stringify(historyList));this.parentElement.parentElement.remove()">حذف</button>
+            </div>`;
+          historyListEl.appendChild(item);
         });
-      }
-
-      /* ===================== أزرار جانبية ===================== */
-      historyBtn.addEventListener('click', () => { renderHistory(); historyModal.style.display = 'flex'; });
-      closeHistory.addEventListener('click', () => { historyModal.style.display = 'none'; });
-      clearBtn.addEventListener('click', () => { if (confirm('هل تريد مسح المحتوى؟')) { editor.innerHTML = ''; updateLen(); } });
-      downloadBtn.addEventListener('click', () => { const blob = new Blob([editor.innerHTML], { type: 'text/html' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'page.html'; a.click(); URL.revokeObjectURL(url); });
-      themeBtn.addEventListener('click', () => { document.body.classList.toggle('light'); localStorage.setItem(userKey + ':theme', document.body.classList.contains('light') ? 'light' : 'dark'); });
-      newPageBtn.addEventListener('click', () => { if (confirm('فتح صفحة جديدة؟ سيتم مسح المحتوى الحالي.')) { editor.innerHTML = ''; updateLen(); } });
-      timeBtn.addEventListener('click', () => { const now = new Date(); clock.textContent = now.toLocaleTimeString('ar-EG'); dateBox.textContent = now.toLocaleDateString('ar-EG'); });
-      locBtn.addEventListener('click', () => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { coords.textContent = `خط العرض: ${pos.coords.latitude}, خط الطول: ${pos.coords.longitude}`; accuracy.textContent = `دقة: ${pos.coords.accuracy} متر`; }, err => { alert('تعذر الحصول على الموقع'); }); } else alert('الموقع غير مدعوم'); });
-
-      /* ===================== تبديل تشغيل/إيقاف ===================== */
-      sw.addEventListener('click', () => { sw.classList.toggle('on'); const on = sw.classList.contains('on'); sw.setAttribute('aria-checked', on); statusText.textContent = on ? 'مفعّل' : 'غير مفعّل'; statusInfo.textContent = on ? 'تم حفظ الحالة' : 'تم إيقاف'; localStorage.setItem(userKey + ':statusOn', on); });
-
-      /* ===================== حجم ونوع الخط ===================== */
-      fontSize.addEventListener('change', () => { editor.style.fontSize = fontSize.value; localStorage.setItem(userKey + ':fontSize', fontSize.value); });
-      fontFamily.addEventListener('change', () => { editor.style.fontFamily = fontFamily.value; localStorage.setItem(userKey + ':fontFamily', fontFamily.value); });
-
-      /* ===================== الساعة التلقائية ===================== */
-      setInterval(() => { const now = new Date(); clock.textContent = now.toLocaleTimeString('ar-EG'); dateBox.textContent = now.toLocaleDateString('ar-EG'); }, 1000);
-
-      /* ===================== شاشة الترحيب ===================== */
-      window.addEventListener('load', () => {
-        const welcome = document.getElementById('welcomeScreen');
-        setTimeout(() => { welcome.style.display = 'none'; document.querySelector('.app').style.display = 'grid'; load(); }, 10000);
+        historyModal.style.display = 'flex';
       });
+
+      closeHistory.addEventListener('click', () => { historyModal.style.display = 'none'; });
+
+      function updateClock() { const d = new Date(); clock.textContent = d.toLocaleTimeString(); dateBox.textContent = d.toLocaleDateString(); }
+      setInterval(updateClock, 1000); updateClock();
+      loadContent(); siteInput.value = localStorage.getItem('siteName') || 'موقعي الشخصي'; siteName.textContent = siteInput.value;
+
+      locBtn.addEventListener('click', () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            coords.textContent = `خط العرض: ${pos.coords.latitude.toFixed(4)} , خط الطول: ${pos.coords.longitude.toFixed(4)}`;
+            accuracy.textContent = `دقة: ${pos.coords.accuracy} متر`;
+          }, err => { coords.textContent = 'تعذر الحصول على الموقع'; accuracy.textContent = ''; });
+        } else { coords.textContent = 'جهازك لا يدعم تحديد الموقع'; }
+      });
+
+      // الإملاء الصوتي
+      voiceBtn.addEventListener('click', () => {
+        if (!('webkitSpeechRecognition' in window)) { showToast('المتصفح لا يدعم الإملاء الصوتي'); return; }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'ar-AR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.onresult = function (event) {
+          const transcript = event.results[0][0].transcript;
+          editor.innerHTML += transcript;
+          updateLen();
+        };
+        recognition.start();
+      });
+
+      // إظهار التطبيق بعد الترحيب
+      setTimeout(() => { document.getElementById('welcomeScreen').style.display = 'none'; document.querySelector('.app').style.display = 'grid'; }, 10000);
     </script>
+  </div>
 </body>
 
 </html>
