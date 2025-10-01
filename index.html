@@ -164,6 +164,7 @@
     }
 
     input[type="text"],
+    textarea,
     select {
       width: 100%;
       padding: 8px;
@@ -171,6 +172,11 @@
       border: 1px solid rgba(255, 255, 255, 0.03);
       background: transparent;
       color: inherit;
+    }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical;
     }
 
     .switch {
@@ -383,6 +389,7 @@
     }
 
     @keyframes fadeOut {
+
       0%,
       90% {
         opacity: 1;
@@ -398,7 +405,7 @@
 
 <body>
   <div id="welcomeScreen">
-    <h1>مرحباً بك في موقعي</h1>
+    <h1 id="welcomeTitle">مرحباً بك في موقعي</h1>
     <p>سيتم فتح الموقع تلقائياً خلال 10 ثواني</p>
   </div>
 
@@ -486,7 +493,12 @@
 
       <div class="card">
         <button id="voiceBtn" class="primary">الإملاء الصوتي</button>
-        <small>اضغط لتفعيل الكتابة بالصوت</small>
+        <small id="voiceStatus">اضغط لتفعيل الكتابة بالصوت</small>
+      </div>
+
+      <div class="card">
+        <label>وصف الموقع:</label>
+        <textarea id="siteDesc" placeholder="اكتب وصف الموقع هنا..."></textarea>
       </div>
 
       <div class="card stat">
@@ -495,6 +507,9 @@
         </div>
         <div class="row"><label>آخر حفظ</label>
           <div class="meta" id="lastSaved">لم يحفظ بعد</div>
+        </div>
+        <div class="row"><label>دليل الاستخدام</label>
+          <div class="meta" id="usageGuide">اكتب النص واحفظه، يمكن تنزيله لاحقاً</div>
         </div>
       </div>
     </aside>
@@ -507,6 +522,7 @@
     </div>
     <div class="toast" id="toast">تم</div>
     <footer>نسخة نهائية — جاهزة للنشر</footer>
+
     <script>
       const editor = document.getElementById('editor');
       const saveBtn = document.getElementById('saveBtn');
@@ -536,25 +552,41 @@
       const historyModal = document.getElementById('historyModal');
       const historyListEl = document.getElementById('historyList');
       const closeHistory = document.getElementById('closeHistory');
+      const voiceStatus = document.getElementById('voiceStatus');
+      const siteDesc = document.getElementById('siteDesc');
+
       let userKey = 'app:user:' + (localStorage.getItem('userId') || Date.now());
       localStorage.setItem('userId', userKey.split(':')[2]);
       let historyList = JSON.parse(localStorage.getItem(userKey + ':history') || '[]');
 
       function showToast(txt, ms = 1600) { toast.textContent = txt; toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', ms); }
       function updateLen() { lenEl.textContent = editor.textContent.trim().length; }
-      function saveContent() { localStorage.setItem(userKey, editor.innerHTML); lastSaved.textContent = new Date().toLocaleString(); addHistory(editor.innerHTML); showToast('تم الحفظ'); updateLen(); }
       function addHistory(data) { historyList.push({ time: new Date().toLocaleString(), content: data }); localStorage.setItem(userKey + ':history', JSON.stringify(historyList)); }
-      function loadContent() { const data = localStorage.getItem(userKey); if (data) editor.innerHTML = data; updateLen(); }
+
+      function saveContent() {
+        localStorage.setItem(userKey, editor.innerHTML);
+        localStorage.setItem(userKey + ':desc', siteDesc.value);
+        lastSaved.textContent = new Date().toLocaleString();
+        addHistory(editor.innerHTML);
+        showToast('تم الحفظ');
+        updateLen();
+      }
+
+      function loadContent() {
+        const data = localStorage.getItem(userKey);
+        if (data) editor.innerHTML = data;
+        const desc = localStorage.getItem(userKey + ':desc');
+        if (desc) siteDesc.value = desc;
+        updateLen();
+      }
 
       saveBtn.addEventListener('click', saveContent);
       downloadBtn.addEventListener('click', () => {
         const blob = new Blob([editor.innerHTML], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = 'page.html';
         a.click();
-        URL.revokeObjectURL(url);
       });
       clearBtn.addEventListener('click', () => { editor.innerHTML = ''; updateLen(); showToast('تم المسح'); });
       newPageBtn.addEventListener('click', () => { editor.innerHTML = ''; updateLen(); });
@@ -566,10 +598,10 @@
         historyListEl.innerHTML = '';
         historyList.slice().reverse().forEach((h, i) => {
           const item = document.createElement('div'); item.className = 'history-item';
-          item.innerHTML = `<div class="meta">${h.time} - ${h.content.substring(0,50)}...</div>
+          item.innerHTML = `<div class="meta">${h.time} - ${h.content.substring(0, 50)}...</div>
             <div class="history-actions">
-              <button onclick="editor.innerHTML=historyList[${historyList.length-1-i}].content;updateLen()">عرض</button>
-              <button onclick="historyList.splice(${historyList.length-1-i},1);localStorage.setItem('${userKey}:history',JSON.stringify(historyList));this.parentElement.parentElement.remove()">حذف</button>
+              <button onclick="editor.innerHTML=historyList[${historyList.length - 1 - i}].content;updateLen()">عرض</button>
+              <button onclick="historyList.splice(${historyList.length - 1 - i},1);localStorage.setItem('${userKey}:history',JSON.stringify(historyList));this.parentElement.parentElement.remove()">حذف</button>
             </div>`;
           historyListEl.appendChild(item);
         });
@@ -592,22 +624,35 @@
       });
 
       // الإملاء الصوتي
+      let recognition;
       voiceBtn.addEventListener('click', () => {
         if (!('webkitSpeechRecognition' in window)) { showToast('المتصفح لا يدعم الإملاء الصوتي'); return; }
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ar-AR';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.onresult = function (event) {
-          const transcript = event.results[0][0].transcript;
-          editor.innerHTML += transcript;
-          updateLen();
-        };
-        recognition.start();
+        if (!recognition) {
+          recognition = new webkitSpeechRecognition();
+          recognition.lang = 'ar-AR';
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.onresult = function (event) {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              transcript += event.results[i][0].transcript;
+            }
+            editor.innerHTML += transcript;
+            updateLen();
+          };
+          recognition.onend = () => { voiceStatus.textContent = 'الإملاء متوقف'; recognition = null; };
+          recognition.start();
+          voiceStatus.textContent = 'الإملاء جاري...';
+        } else {
+          recognition.stop();
+          recognition = null;
+          voiceStatus.textContent = 'الإملاء متوقف';
+        }
       });
 
-      // إظهار التطبيق بعد الترحيب
-      setTimeout(() => { document.getElementById('welcomeScreen').style.display = 'none'; document.querySelector('.app').style.display = 'grid'; }, 10000);
+      // شاشة الترحيب
+      const welcomeScreen = document.getElementById('welcomeScreen');
+      setTimeout(() => { welcomeScreen.style.display = 'none'; document.querySelector('.app').style.display = 'grid'; }, 10000);
     </script>
   </div>
 </body>
