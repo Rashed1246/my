@@ -350,7 +350,6 @@
       justify-content: center;
       font-family: 'Segoe UI', Tahoma, sans-serif;
       z-index: 99999;
-      animation: fadeOut 10s forwards;
       opacity: 1;
     }
 
@@ -385,19 +384,6 @@
 
       100% {
         opacity: 1;
-      }
-    }
-
-    @keyframes fadeOut {
-
-      0%,
-      90% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-        display: none;
       }
     }
   </style>
@@ -498,7 +484,13 @@
 
       <div class="card">
         <label>وصف الموقع:</label>
-        <textarea id="siteDesc" placeholder="اكتب وصف الموقع هنا..."></textarea>
+        <textarea id="siteDesc" placeholder="مرحبًا بك في موقعنا الشخصي!
+
+موقعنا يقدم لك تجربة تفاعلية وشاملة لإدارة المحتوى الرقمي بسهولة وفعالية. من خلال واجهة مستخدم حديثة وبسيطة، يمكنك تحرير النصوص، تعديل الإعدادات، وحفظ البيانات محليًا على جهازك. كما يوفر الموقع أدوات مبتكرة مثل الإملاء الصوتي، معرفة الوقت والتاريخ، وتتبع الموقع الجغرافي لضمان تجربة استخدام متكاملة.
+
+تم تصميم الموقع ليكون متجاوبًا مع جميع الأجهزة، مع دعم كامل لتغيير المظهر بين الوضع الليلي والنهاري، وتخصيص الخطوط والأحجام بما يتناسب مع تفضيلاتك. هدفنا هو تقديم بيئة مرنة وآمنة تسهّل إدارة محتواك الشخصي أو مشاريعك الصغيرة بشكل احترافي.
+
+استمتع بتجربة موقع حديثة، سهلة، وآمنة!"></textarea>
       </div>
 
       <div class="card stat">
@@ -559,102 +551,111 @@
       localStorage.setItem('userId', userKey.split(':')[2]);
       let historyList = JSON.parse(localStorage.getItem(userKey + ':history') || '[]');
 
-      function showToast(txt, ms = 1600) { toast.textContent = txt; toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', ms); }
-      function updateLen() { lenEl.textContent = editor.textContent.trim().length; }
-      function addHistory(data) { historyList.push({ time: new Date().toLocaleString(), content: data }); localStorage.setItem(userKey + ':history', JSON.stringify(historyList)); }
+      function showToast(txt, ms = 1600) { toast.innerText = txt; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, ms); }
 
-      function saveContent() {
-        localStorage.setItem(userKey, editor.innerHTML);
-        localStorage.setItem(userKey + ':desc', siteDesc.value);
-        lastSaved.textContent = new Date().toLocaleString();
-        addHistory(editor.innerHTML);
-        showToast('تم الحفظ');
-        updateLen();
+      function saveData() {
+        localStorage.setItem(userKey + ':content', editor.innerHTML);
+        localStorage.setItem(userKey + ':siteName', siteName.innerText);
+        localStorage.setItem(userKey + ':siteInput', siteInput.value);
+        localStorage.setItem(userKey + ':siteDesc', siteDesc.value);
+        lenEl.innerText = editor.innerText.length;
+        lastSaved.innerText = new Date().toLocaleString();
+        historyList.push({ content: editor.innerHTML, date: new Date().toLocaleString() });
+        localStorage.setItem(userKey + ':history', JSON.stringify(historyList));
+        showToast('تم الحفظ محلياً');
       }
 
-      function loadContent() {
-        const data = localStorage.getItem(userKey);
-        if (data) editor.innerHTML = data;
-        const desc = localStorage.getItem(userKey + ':desc');
-        if (desc) siteDesc.value = desc;
-        updateLen();
-      }
-
-      saveBtn.addEventListener('click', saveContent);
-      downloadBtn.addEventListener('click', () => {
-        const blob = new Blob([editor.innerHTML], { type: 'text/html;charset=utf-8' });
+      function downloadHTML() {
+        const blob = new Blob([editor.innerHTML], { type: 'text/html' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'page.html';
         a.click();
-      });
-      clearBtn.addEventListener('click', () => { editor.innerHTML = ''; updateLen(); showToast('تم المسح'); });
-      newPageBtn.addEventListener('click', () => { editor.innerHTML = ''; updateLen(); });
-      themeBtn.addEventListener('click', () => { document.body.classList.toggle('light'); });
-      siteInput.addEventListener('input', () => { siteName.textContent = siteInput.value; localStorage.setItem('siteName', siteInput.value); });
-      sw.addEventListener('click', () => { sw.classList.toggle('on'); statusText.textContent = sw.classList.contains('on') ? 'نشط' : 'متوقف'; statusInfo.textContent = sw.classList.contains('on') ? 'الموقع يعمل' : 'الموقع متوقف'; sw.setAttribute('aria-checked', sw.classList.contains('on')); });
+      }
 
-      historyBtn.addEventListener('click', () => {
+      function clearContent() { editor.innerHTML = ''; lenEl.innerText = 0; }
+
+      function showTime() { alert(new Date().toLocaleString()); }
+
+      function getLocation() {
+        if (!navigator.geolocation) { coords.innerText = "غير مدعوم"; return; }
+        navigator.geolocation.getCurrentPosition(pos => {
+          coords.innerText = `خط العرض: ${pos.coords.latitude}, خط الطول: ${pos.coords.longitude}`;
+          accuracy.innerText = `دقة: ${pos.coords.accuracy} متر`;
+        });
+      }
+
+      function toggleTheme() { document.body.classList.toggle('light'); }
+
+      function newPage() { if (confirm('إنشاء صفحة جديدة؟ ستفقد المحتوى الحالي')) editor.innerHTML = ''; }
+
+      function openHistory() {
         historyListEl.innerHTML = '';
-        historyList.slice().reverse().forEach((h, i) => {
-          const item = document.createElement('div'); item.className = 'history-item';
-          item.innerHTML = `<div class="meta">${h.time} - ${h.content.substring(0, 50)}...</div>
-            <div class="history-actions">
-              <button onclick="editor.innerHTML=historyList[${historyList.length - 1 - i}].content;updateLen()">عرض</button>
-              <button onclick="historyList.splice(${historyList.length - 1 - i},1);localStorage.setItem('${userKey}:history',JSON.stringify(historyList));this.parentElement.parentElement.remove()">حذف</button>
-            </div>`;
-          historyListEl.appendChild(item);
+        historyList.forEach((h, i) => {
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.innerHTML = `<div class="meta">${h.date}</div><div class="history-actions"><button onclick="loadHistory(${i})">تحميل</button><button onclick="deleteHistory(${i})">حذف</button></div>`;
+          historyListEl.appendChild(div);
         });
         historyModal.style.display = 'flex';
-      });
+      }
 
-      closeHistory.addEventListener('click', () => { historyModal.style.display = 'none'; });
+      function loadHistory(idx) { editor.innerHTML = historyList[idx].content; historyModal.style.display = 'none'; }
 
-      function updateClock() { const d = new Date(); clock.textContent = d.toLocaleTimeString(); dateBox.textContent = d.toLocaleDateString(); }
-      setInterval(updateClock, 1000); updateClock();
-      loadContent(); siteInput.value = localStorage.getItem('siteName') || 'موقعي الشخصي'; siteName.textContent = siteInput.value;
+      function deleteHistory(idx) { historyList.splice(idx, 1); localStorage.setItem(userKey + ':history', JSON.stringify(historyList)); openHistory(); }
 
-      locBtn.addEventListener('click', () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(pos => {
-            coords.textContent = `خط العرض: ${pos.coords.latitude.toFixed(4)} , خط الطول: ${pos.coords.longitude.toFixed(4)}`;
-            accuracy.textContent = `دقة: ${pos.coords.accuracy} متر`;
-          }, err => { coords.textContent = 'تعذر الحصول على الموقع'; accuracy.textContent = ''; });
-        } else { coords.textContent = 'جهازك لا يدعم تحديد الموقع'; }
-      });
+      saveBtn.onclick = saveData;
+      downloadBtn.onclick = downloadHTML;
+      clearBtn.onclick = clearContent;
+      timeBtn.onclick = showTime;
+      locBtn.onclick = getLocation;
+      themeBtn.onclick = toggleTheme;
+      newPageBtn.onclick = newPage;
+      historyBtn.onclick = openHistory;
+      closeHistory.onclick = () => historyModal.style.display = 'none';
+
+      siteInput.addEventListener('input', () => siteName.innerText = siteInput.value);
+      fontSize.addEventListener('change', () => editor.style.fontSize = fontSize.value);
+      fontFamily.addEventListener('change', () => editor.style.fontFamily = fontFamily.value);
+
+      sw.onclick = () => {
+        sw.classList.toggle('on');
+        const on = sw.classList.contains('on');
+        sw.setAttribute('aria-checked', on);
+        statusText.innerText = on ? 'مفعل' : 'غير مفعل';
+        statusInfo.innerText = on ? 'الحالة حالياً مفعلة' : 'الحالة غير مفعلة';
+      };
+
+      // تحميل البيانات المحفوظة
+      window.onload = () => {
+        editor.innerHTML = localStorage.getItem(userKey + ':content') || editor.innerHTML;
+        siteName.innerText = localStorage.getItem(userKey + ':siteName') || siteName.innerText;
+        siteInput.value = localStorage.getItem(userKey + ':siteInput') || '';
+        siteDesc.value = localStorage.getItem(userKey + ':siteDesc') || '';
+        lenEl.innerText = editor.innerText.length;
+        lastSaved.innerText = localStorage.getItem(userKey + ':lastSaved') || 'لم يحفظ بعد';
+        setInterval(() => { clock.innerText = new Date().toLocaleTimeString(); dateBox.innerText = new Date().toLocaleDateString(); }, 1000);
+      };
 
       // الإملاء الصوتي
-      let recognition;
-      voiceBtn.addEventListener('click', () => {
-        if (!('webkitSpeechRecognition' in window)) { showToast('المتصفح لا يدعم الإملاء الصوتي'); return; }
-        if (!recognition) {
-          recognition = new webkitSpeechRecognition();
-          recognition.lang = 'ar-AR';
-          recognition.continuous = true;
-          recognition.interimResults = true;
-          recognition.onresult = function (event) {
-            let transcript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              transcript += event.results[i][0].transcript;
-            }
-            editor.innerHTML += transcript;
-            updateLen();
-          };
-          recognition.onend = () => { voiceStatus.textContent = 'الإملاء متوقف'; recognition = null; };
-          recognition.start();
-          voiceStatus.textContent = 'الإملاء جاري...';
-        } else {
-          recognition.stop();
-          recognition = null;
-          voiceStatus.textContent = 'الإملاء متوقف';
-        }
-      });
+      voiceBtn.onclick = () => {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'ar';
+        recognition.interimResults = true;
+        recognition.onstart = () => voiceStatus.innerText = 'جاري التسجيل...';
+        recognition.onresult = e => { editor.innerHTML += e.results[0][0].transcript; lenEl.innerText = editor.innerText.length; };
+        recognition.onend = () => voiceStatus.innerText = 'تم الانتهاء من التسجيل';
+        recognition.start();
+      };
 
       // شاشة الترحيب
       const welcomeScreen = document.getElementById('welcomeScreen');
-      setTimeout(() => { welcomeScreen.style.display = 'none'; document.querySelector('.app').style.display = 'grid'; }, 10000);
+      const app = document.querySelector('.app');
+      setTimeout(() => {
+        welcomeScreen.style.display = 'none';
+        app.style.display = 'grid';
+      }, 10000); // 10 ثواني
     </script>
-  </div>
 </body>
 
 </html>
