@@ -22,7 +22,7 @@
       --card: #fff;
       --accent: #ef4444;
       --muted: #444;
-      --glass: rgba(0, 0, 0, 0.06);
+      --glass: rgba(201, 195, 195, 0.06);
       background: linear-gradient(180deg, #fdfdfd, #f0f0f0);
       color: #111;
     }
@@ -220,12 +220,6 @@
       gap: 6px;
     }
 
-    .stat .value {
-      font-size: 18px;
-      color: #e6f8fb;
-      font-weight: 700;
-    }
-
     footer {
       grid-column: 1/-1;
       text-align: center;
@@ -301,6 +295,20 @@
     .history-actions {
       display: flex;
       gap: 8px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .custom-file-upload {
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      display: inline-block;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--muted);
     }
 
     @media(max-width:880px) {
@@ -400,7 +408,7 @@
       <div class="brand">
         <div class="logo" id="logoTxt">م</div>
         <div>
-          <h1 contenteditable="true" id="siteName">موقعي الشخصي</h1>
+          <h1 id="siteName">موقعي الشخصي</h1>
           <p id="siteTag">لوحة تحكم قابلة للتعديل</p>
         </div>
       </div>
@@ -420,6 +428,10 @@
         <button id="themeBtn">تبديل ليل/نهار</button>
         <button id="newPageBtn">صفحة جديدة</button>
         <button id="historyBtn">المحفوظات</button>
+        <label class="custom-file-upload">
+          <input type="file" id="fileUpload" accept="image/*" />
+          رفع صورة
+        </label>
       </div>
       <div class="editor" id="editor" contenteditable="true" aria-label="محرر النص">
         اكتب هنا. هذا محرر نص كامل، يمكنك تغيير النص، الضغط على حفظ ثم إعادة تحميل الصفحة لرؤية البيانات المحفوظة.
@@ -457,13 +469,13 @@
         <div class="row">
           <label>حالة الموقع</label>
           <div class="toggle">
-            <div id="statusText" class="meta">غير معروف</div>
+            <div id="statusText" class="meta">غير مفعل</div>
             <div id="switch" class="switch" role="switch" aria-checked="false">
               <div class="knob"></div>
             </div>
           </div>
         </div>
-        <small id="statusInfo">لم يتم تحديد الحالة.</small>
+        <small id="statusInfo">الحالة مفعلة/غير مفعلة</small>
       </div>
 
       <div class="card">
@@ -474,7 +486,7 @@
             <div class="meta" id="accuracy"></div>
           </div>
         </div>
-        <small id="locNote">اضغط "احصل على الموقع" لاختبار واجهة الموقع الجغرافي.</small>
+        <small id="locNote">اضغط "احصل على الموقع" لاختبار الموقع الجغرافي.</small>
       </div>
 
       <div class="card">
@@ -484,13 +496,9 @@
 
       <div class="card">
         <label>وصف الموقع:</label>
-        <textarea id="siteDesc" placeholder="مرحبًا بك في موقعنا الشخصي!
-
-موقعنا يقدم لك تجربة تفاعلية وشاملة لإدارة المحتوى الرقمي بسهولة وفعالية. من خلال واجهة مستخدم حديثة وبسيطة، يمكنك تحرير النصوص، تعديل الإعدادات، وحفظ البيانات محليًا على جهازك. كما يوفر الموقع أدوات مبتكرة مثل الإملاء الصوتي، معرفة الوقت والتاريخ، وتتبع الموقع الجغرافي لضمان تجربة استخدام متكاملة.
-
-تم تصميم الموقع ليكون متجاوبًا مع جميع الأجهزة، مع دعم كامل لتغيير المظهر بين الوضع الليلي والنهاري، وتخصيص الخطوط والأحجام بما يتناسب مع تفضيلاتك. هدفنا هو تقديم بيئة مرنة وآمنة تسهّل إدارة محتواك الشخصي أو مشاريعك الصغيرة بشكل احترافي.
-
-استمتع بتجربة موقع حديثة، سهلة، وآمنة!"></textarea>
+        <textarea id="siteDesc" readonly>
+هذا موقع شخصي لإدارة المحتوى النصي، رفع الصور، متابعة حالة الموقع والتاريخ، مع دعم الوضع الليلي والإملاء الصوتي. سهل الاستخدام ويتيح حفظ البيانات محلياً وتنزيلها على شكل صفحة HTML.
+        </textarea>
       </div>
 
       <div class="card stat">
@@ -539,122 +547,192 @@
       const statusText = document.getElementById('statusText');
       const statusInfo = document.getElementById('statusInfo');
       const sw = document.getElementById('switch');
-      const fontSize = document.getElementById('fontSize');
-      const fontFamily = document.getElementById('fontFamily');
-      const historyModal = document.getElementById('historyModal');
-      const historyListEl = document.getElementById('historyList');
-      const closeHistory = document.getElementById('closeHistory');
-      const voiceStatus = document.getElementById('voiceStatus');
-      const siteDesc = document.getElementById('siteDesc');
+      const welcomeScreen = document.getElementById('welcomeScreen');
+      const appDiv = document.querySelector('.app');
+      const fileUpload = document.getElementById('fileUpload');
 
-      let userKey = 'app:user:' + (localStorage.getItem('userId') || Date.now());
-      localStorage.setItem('userId', userKey.split(':')[2]);
-      let historyList = JSON.parse(localStorage.getItem(userKey + ':history') || '[]');
+      // شاشة الترحيب
+      setTimeout(() => {
+        welcomeScreen.style.display = 'none';
+        appDiv.style.display = 'grid';
+      }, 10000);
 
-      function showToast(txt, ms = 1600) { toast.innerText = txt; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, ms); }
-
-      function saveData() {
-        localStorage.setItem(userKey + ':content', editor.innerHTML);
-        localStorage.setItem(userKey + ':siteName', siteName.innerText);
-        localStorage.setItem(userKey + ':siteInput', siteInput.value);
-        localStorage.setItem(userKey + ':siteDesc', siteDesc.value);
-        lenEl.innerText = editor.innerText.length;
-        lastSaved.innerText = new Date().toLocaleString();
-        historyList.push({ content: editor.innerHTML, date: new Date().toLocaleString() });
-        localStorage.setItem(userKey + ':history', JSON.stringify(historyList));
-        showToast('تم الحفظ محلياً');
+      // حفظ محلي
+      saveBtn.onclick = () => {
+        localStorage.setItem('content', editor.innerHTML);
+        const now = new Date();
+        lastSaved.textContent = now.toLocaleString();
+        lenEl.textContent = editor.innerText.length;
+        showToast("تم الحفظ محلياً");
       }
 
-      function downloadHTML() {
+      // تحميل HTML
+      downloadBtn.onclick = () => {
         const blob = new Blob([editor.innerHTML], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'page.html';
-        a.click();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'page.html';
+        link.click();
       }
 
-      function clearContent() { editor.innerHTML = ''; lenEl.innerText = 0; }
-
-      function showTime() { alert(new Date().toLocaleString()); }
-
-      function getLocation() {
-        if (!navigator.geolocation) { coords.innerText = "غير مدعوم"; return; }
-        navigator.geolocation.getCurrentPosition(pos => {
-          coords.innerText = `خط العرض: ${pos.coords.latitude}, خط الطول: ${pos.coords.longitude}`;
-          accuracy.innerText = `دقة: ${pos.coords.accuracy} متر`;
-        });
+      // مسح المحتوى
+      clearBtn.onclick = () => {
+        editor.innerHTML = '';
+        lenEl.textContent = 0;
+        showToast("تم مسح المحتوى");
       }
 
-      function toggleTheme() { document.body.classList.toggle('light'); }
+      // الوقت والتاريخ
+      function updateClock() {
+        const now = new Date();
+        clock.textContent = now.toLocaleTimeString();
+        dateBox.textContent = now.toLocaleDateString();
+      }
+      setInterval(updateClock, 1000);
 
-      function newPage() { if (confirm('إنشاء صفحة جديدة؟ ستفقد المحتوى الحالي')) editor.innerHTML = ''; }
+      timeBtn.onclick = updateClock;
 
-      function openHistory() {
-        historyListEl.innerHTML = '';
-        historyList.forEach((h, i) => {
-          const div = document.createElement('div');
-          div.className = 'history-item';
-          div.innerHTML = `<div class="meta">${h.date}</div><div class="history-actions"><button onclick="loadHistory(${i})">تحميل</button><button onclick="deleteHistory(${i})">حذف</button></div>`;
-          historyListEl.appendChild(div);
-        });
+      // الموقع الجغرافي
+      locBtn.onclick = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            coords.textContent = `خط العرض: ${pos.coords.latitude}, خط الطول: ${pos.coords.longitude}`;
+            accuracy.textContent = `الدقة: ${pos.coords.accuracy} متر`;
+          }, err => {
+            coords.textContent = `خطأ في الحصول على الموقع`;
+          });
+        } else {
+          coords.textContent = 'المتصفح لا يدعم الموقع';
+        }
+      }
+
+      // تبديل الوضع الليلي
+      themeBtn.onclick = () => {
+        document.body.classList.toggle('light');
+      }
+
+      // صفحة جديدة
+      newPageBtn.onclick = () => {
+        if (confirm("هل تريد إنشاء صفحة جديدة ومسح المحتوى الحالي؟")) {
+          editor.innerHTML = '';
+          lenEl.textContent = 0;
+          lastSaved.textContent = 'لم يحفظ بعد';
+        }
+      }
+
+      // رفع الصور
+      fileUpload.onchange = () => {
+        const file = fileUpload.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.maxWidth = '100%';
+            editor.appendChild(img);
+          }
+          reader.readAsDataURL(file);
+        }
+      }
+
+      // حالة الموقع
+      sw.onclick = () => {
+        sw.classList.toggle('on');
+        const active = sw.classList.contains('on');
+        statusText.textContent = active ? 'مفعل' : 'غير مفعل';
+        sw.setAttribute('aria-checked', active);
+      }
+
+      // الإملاء الصوتي
+      let recognition;
+      if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = 'ar-SA';
+        recognition.continuous = true;
+        recognition.onresult = e => {
+          editor.innerHTML += e.results[e.results.length - 1][0].transcript;
+          lenEl.textContent = editor.innerText.length;
+        }
+      }
+      voiceBtn.onclick = () => {
+        if (recognition) recognition.start();
+        showToast("تم بدء الإملاء الصوتي");
+      }
+
+      // Toast
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+      }
+      // زر المحفوظات
+      const historyModal = document.getElementById('historyModal');
+      const historyList = document.getElementById('historyList');
+      const closeHistory = document.getElementById('closeHistory');
+
+      historyBtn.onclick = () => {
+        historyList.innerHTML = '';
+        // نجلب كل عناصر localStorage التي تحتوي على 'content'
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith('content')) {
+            const value = localStorage.getItem(key);
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+        <div class="meta">${value.substring(0, 100)}...</div>
+        <div class="history-actions">
+          <button onclick="loadHistory('${key}')">تحميل</button>
+          <button onclick="deleteHistory('${key}', this)">حذف</button>
+        </div>`;
+            historyList.appendChild(div);
+          }
+        }
         historyModal.style.display = 'flex';
       }
 
-      function loadHistory(idx) { editor.innerHTML = historyList[idx].content; historyModal.style.display = 'none'; }
+      closeHistory.onclick = () => {
+        historyModal.style.display = 'none';
+      }
 
-      function deleteHistory(idx) { historyList.splice(idx, 1); localStorage.setItem(userKey + ':history', JSON.stringify(historyList)); openHistory(); }
+      // تحميل حفظ محدد
+      function loadHistory(key) {
+        const value = localStorage.getItem(key);
+        editor.innerHTML = value;
+        lenEl.textContent = editor.innerText.length;
+        showToast("تم تحميل المحتوى");
+      }
 
-      saveBtn.onclick = saveData;
-      downloadBtn.onclick = downloadHTML;
-      clearBtn.onclick = clearContent;
-      timeBtn.onclick = showTime;
-      locBtn.onclick = getLocation;
-      themeBtn.onclick = toggleTheme;
-      newPageBtn.onclick = newPage;
-      historyBtn.onclick = openHistory;
-      closeHistory.onclick = () => historyModal.style.display = 'none';
+      // حذف حفظ محدد
+      function deleteHistory(key, btn) {
+        localStorage.removeItem(key);
+        btn.closest('.history-item').remove();
+        showToast("تم حذف الحفظ");
+      }
 
-      siteInput.addEventListener('input', () => siteName.innerText = siteInput.value);
-      fontSize.addEventListener('change', () => editor.style.fontSize = fontSize.value);
-      fontFamily.addEventListener('change', () => editor.style.fontFamily = fontFamily.value);
+      // تخزين كل حفظ جديد باسم فريد
+      saveBtn.onclick = () => {
+        const id = 'content-' + new Date().getTime();
+        localStorage.setItem(id, editor.innerHTML);
+        const now = new Date();
+        lastSaved.textContent = now.toLocaleString();
+        lenEl.textContent = editor.innerText.length;
+        showToast("تم الحفظ محلياً");
+      }
 
-      sw.onclick = () => {
-        sw.classList.toggle('on');
-        const on = sw.classList.contains('on');
-        sw.setAttribute('aria-checked', on);
-        statusText.innerText = on ? 'مفعل' : 'غير مفعل';
-        statusInfo.innerText = on ? 'الحالة حالياً مفعلة' : 'الحالة غير مفعلة';
-      };
-
-      // تحميل البيانات المحفوظة
+      // تحميل المحتوى السابق
       window.onload = () => {
-        editor.innerHTML = localStorage.getItem(userKey + ':content') || editor.innerHTML;
-        siteName.innerText = localStorage.getItem(userKey + ':siteName') || siteName.innerText;
-        siteInput.value = localStorage.getItem(userKey + ':siteInput') || '';
-        siteDesc.value = localStorage.getItem(userKey + ':siteDesc') || '';
-        lenEl.innerText = editor.innerText.length;
-        lastSaved.innerText = localStorage.getItem(userKey + ':lastSaved') || 'لم يحفظ بعد';
-        setInterval(() => { clock.innerText = new Date().toLocaleTimeString(); dateBox.innerText = new Date().toLocaleDateString(); }, 1000);
-      };
+        const content = localStorage.getItem('content');
+        if (content) editor.innerHTML = content;
+        lenEl.textContent = editor.innerText.length;
+      }
 
-      // الإملاء الصوتي
-      voiceBtn.onclick = () => {
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'ar';
-        recognition.interimResults = true;
-        recognition.onstart = () => voiceStatus.innerText = 'جاري التسجيل...';
-        recognition.onresult = e => { editor.innerHTML += e.results[0][0].transcript; lenEl.innerText = editor.innerText.length; };
-        recognition.onend = () => voiceStatus.innerText = 'تم الانتهاء من التسجيل';
-        recognition.start();
-      };
+      // تغيير اسم الموقع
+      siteInput.oninput = () => {
+        siteName.textContent = siteInput.value || "موقعي الشخصي";
+        logoTxt.textContent = (siteInput.value[0] || "م");
+      }
 
-      // شاشة الترحيب
-      const welcomeScreen = document.getElementById('welcomeScreen');
-      const app = document.querySelector('.app');
-      setTimeout(() => {
-        welcomeScreen.style.display = 'none';
-        app.style.display = 'grid';
-      }, 10000); // 10 ثواني
     </script>
 </body>
 
