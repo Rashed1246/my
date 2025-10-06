@@ -11,7 +11,7 @@
       --card: #0b1220;
       --accent: #06b6d4;
       --muted: #9aa4b2;
-      --glass: rgba(255, 255, 255, 0.03);
+      --glass: rgba(238, 233, 233, 0.03);
       --radius: 12px;
       --transition: 180ms;
       --font: 'Segoe UI', Tahoma, system-ui, "Noto Naskh Arabic", sans-serif;
@@ -22,9 +22,9 @@
       --card: #fff;
       --accent: #ef4444;
       --muted: #444;
-      --glass: rgba(201, 195, 195, 0.06);
+      --glass: rgba(196, 193, 193, 0.06);
       background: linear-gradient(180deg, #fdfdfd, #f0f0f0);
-      color: #111;
+      color: #000000;
     }
 
     * {
@@ -548,63 +548,79 @@
       const statusInfo = document.getElementById('statusInfo');
       const sw = document.getElementById('switch');
       const welcomeScreen = document.getElementById('welcomeScreen');
-      const appDiv = document.querySelector('.app');
-      const fileUpload = document.getElementById('fileUpload');
+      const appContainer = document.querySelector('.app');
+      const fontSize = document.getElementById('fontSize');
+      const fontFamily = document.getElementById('fontFamily');
 
-      // شاشة الترحيب
-      setTimeout(() => {
-        welcomeScreen.style.display = 'none';
-        appDiv.style.display = 'grid';
-      }, 10000);
+      const historyModal = document.getElementById('historyModal');
+      const historyList = document.getElementById('historyList');
+      const closeHistory = document.getElementById('closeHistory');
 
-      // حفظ محلي
+      // فتح الموقع بعد الترحيب
+      let countdown = 10;
+      const countdownEl = welcomeScreen.querySelector('p');
+      const interval = setInterval(() => {
+        countdown--;
+        countdownEl.textContent = `سيتم فتح الموقع تلقائياً خلال ${countdown} ثواني`;
+        if (countdown <= 0) {
+          clearInterval(interval);
+          welcomeScreen.style.display = 'none';
+          appContainer.style.display = 'grid';
+        }
+      }, 1000);
+
+      // تحميل النص من التخزين المحلي
+      editor.innerHTML = localStorage.getItem('content') || editor.innerHTML;
+      lenEl.textContent = editor.innerText.length;
+      siteInput.value = localStorage.getItem('siteName') || '';
+      if (siteInput.value) siteName.textContent = siteInput.value;
+
+      // حفظ التغييرات التلقائي
+      editor.addEventListener('input', () => {
+        localStorage.setItem('content', editor.innerHTML);
+        lenEl.textContent = editor.innerText.length;
+        const now = new Date();
+        lastSaved.textContent = now.toLocaleString();
+        saveHistory(editor.innerHTML);
+      });
+
+      // حفظ يدوي
       saveBtn.onclick = () => {
         localStorage.setItem('content', editor.innerHTML);
         const now = new Date();
         lastSaved.textContent = now.toLocaleString();
-        lenEl.textContent = editor.innerText.length;
         showToast("تم الحفظ محلياً");
       }
 
       // تحميل HTML
       downloadBtn.onclick = () => {
-        const blob = new Blob([editor.innerHTML], { type: 'text/html' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'page.html';
-        link.click();
+        const blob = new Blob([editor.innerHTML], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "page.html";
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("تم تنزيل HTML");
       }
 
       // مسح المحتوى
       clearBtn.onclick = () => {
-        editor.innerHTML = '';
-        lenEl.textContent = 0;
-        showToast("تم مسح المحتوى");
+        if (confirm("هل تريد مسح كل المحتوى؟")) {
+          editor.innerHTML = '';
+          localStorage.setItem('content', '');
+          showToast("تم المسح");
+        }
       }
 
       // الوقت والتاريخ
-      function updateClock() {
+      function updateTime() {
         const now = new Date();
         clock.textContent = now.toLocaleTimeString();
         dateBox.textContent = now.toLocaleDateString();
       }
-      setInterval(updateClock, 1000);
-
-      timeBtn.onclick = updateClock;
-
-      // الموقع الجغرافي
-      locBtn.onclick = () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(pos => {
-            coords.textContent = `خط العرض: ${pos.coords.latitude}, خط الطول: ${pos.coords.longitude}`;
-            accuracy.textContent = `الدقة: ${pos.coords.accuracy} متر`;
-          }, err => {
-            coords.textContent = `خطأ في الحصول على الموقع`;
-          });
-        } else {
-          coords.textContent = 'المتصفح لا يدعم الموقع';
-        }
-      }
+      setInterval(updateTime, 1000);
+      updateTime();
 
       // تبديل الوضع الليلي
       themeBtn.onclick = () => {
@@ -613,70 +629,82 @@
 
       // صفحة جديدة
       newPageBtn.onclick = () => {
-        if (confirm("هل تريد إنشاء صفحة جديدة ومسح المحتوى الحالي؟")) {
-          editor.innerHTML = '';
-          lenEl.textContent = 0;
-          lastSaved.textContent = 'لم يحفظ بعد';
+        editor.innerHTML = '';
+        lenEl.textContent = '0';
+        showToast("صفحة جديدة");
+      }
+
+      // موقع المستخدم
+      locBtn.onclick = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            coords.textContent = `خط العرض: ${pos.coords.latitude}, خط الطول: ${pos.coords.longitude}`;
+            accuracy.textContent = `دقة الموقع: ${pos.coords.accuracy} متر`;
+          }, err => {
+            coords.textContent = `خطأ في الحصول على الموقع`;
+          });
+        } else {
+          coords.textContent = "المتصفح لا يدعم الموقع";
         }
       }
 
-      // رفع الصور
-      fileUpload.onchange = () => {
-        const file = fileUpload.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = e => {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.maxWidth = '100%';
-            editor.appendChild(img);
-          }
-          reader.readAsDataURL(file);
-        }
-      }
-
-      // حالة الموقع
+      // تبديل الحالة
       sw.onclick = () => {
         sw.classList.toggle('on');
-        const active = sw.classList.contains('on');
-        statusText.textContent = active ? 'مفعل' : 'غير مفعل';
-        sw.setAttribute('aria-checked', active);
+        statusText.textContent = sw.classList.contains('on') ? 'مفعل' : 'غير مفعل';
+        statusInfo.textContent = sw.classList.contains('on') ? 'الحالة مفعلة' : 'الحالة غير مفعلة';
+      }
+
+      // حفظ اسم الموقع
+      siteInput.oninput = () => {
+        siteName.textContent = siteInput.value;
+        logoTxt.textContent = siteInput.value[0] || 'م';
+        localStorage.setItem('siteName', siteInput.value);
       }
 
       // الإملاء الصوتي
       let recognition;
       if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ar-SA';
         recognition.continuous = true;
-        recognition.onresult = e => {
-          editor.innerHTML += e.results[e.results.length - 1][0].transcript;
+        recognition.lang = 'ar-SA';
+        recognition.onresult = (e) => {
+          editor.innerHTML += e.results[e.results.length - 1][0].transcript + " ";
+          editor.scrollTop = editor.scrollHeight;
           lenEl.textContent = editor.innerText.length;
+          saveHistory(editor.innerHTML);
         }
+        recognition.onerror = () => { showToast("حدث خطأ في الإملاء الصوتي") };
+      } else {
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = "الإملاء غير مدعوم";
       }
       voiceBtn.onclick = () => {
         if (recognition) recognition.start();
-        showToast("تم بدء الإملاء الصوتي");
       }
 
-      // Toast
+      // التوست
       function showToast(msg) {
         toast.textContent = msg;
         toast.style.display = 'block';
         setTimeout(() => { toast.style.display = 'none'; }, 2500);
       }
-      // زر المحفوظات
-      const historyModal = document.getElementById('historyModal');
-      const historyList = document.getElementById('historyList');
-      const closeHistory = document.getElementById('closeHistory');
+
+      // المحفوظات
+      function saveHistory(text) {
+        let history = JSON.parse(localStorage.getItem('history') || '[]');
+        history.unshift({ text, date: new Date().toLocaleString() });
+        if (history.length > 20) history.pop();
+        localStorage.setItem('history', JSON.stringify(history));
+      }
 
       historyBtn.onclick = () => {
         historyList.innerHTML = '';
-        // نجلب كل عناصر localStorage التي تحتوي على 'content'
+
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key.startsWith('content')) {
-            const value = localStorage.getItem(key);
+          if (key.startsWith('content-')) {  // استخدم المفتاح الديناميكي فقط
+            const value = localStorage.getItem(key) || ''; // تأكد أنه ليس null
             const div = document.createElement('div');
             div.className = 'history-item';
             div.innerHTML = `
@@ -688,52 +716,53 @@
             historyList.appendChild(div);
           }
         }
+
         historyModal.style.display = 'flex';
       }
 
-      closeHistory.onclick = () => {
-        historyModal.style.display = 'none';
+      closeHistory.onclick = () => { historyModal.style.display = 'none'; }
+
+      function loadHistory(index) {
+        let history = JSON.parse(localStorage.getItem('history') || '[]');
+        if (history[index]) {
+          editor.innerHTML = history[index].text;
+          lenEl.textContent = editor.innerText.length;
+          showToast("تم تحميل النسخة");
+        }
       }
 
-      // تحميل حفظ محدد
-      function loadHistory(key) {
-        const value = localStorage.getItem(key);
-        editor.innerHTML = value;
-        lenEl.textContent = editor.innerText.length;
-        showToast("تم تحميل المحتوى");
-      }
-
-      // حذف حفظ محدد
-      function deleteHistory(key, btn) {
-        localStorage.removeItem(key);
+      function deleteHistory(index, btn) {
+        let history = JSON.parse(localStorage.getItem('history') || '[]');
+        history.splice(index, 1);
+        localStorage.setItem('history', JSON.stringify(history));
         btn.closest('.history-item').remove();
-        showToast("تم حذف الحفظ");
+        showToast("تم حذف النسخة");
       }
 
-      // تخزين كل حفظ جديد باسم فريد
-      saveBtn.onclick = () => {
-        const id = 'content-' + new Date().getTime();
-        localStorage.setItem(id, editor.innerHTML);
-        const now = new Date();
-        lastSaved.textContent = now.toLocaleString();
-        lenEl.textContent = editor.innerText.length;
-        showToast("تم الحفظ محلياً");
-      }
+      // تغيير حجم الخط ونوعه
+      fontSize.onchange = () => { editor.style.fontSize = fontSize.value; }
+      fontFamily.onchange = () => { editor.style.fontFamily = fontFamily.value; }
 
-      // تحميل المحتوى السابق
-      window.onload = () => {
-        const content = localStorage.getItem('content');
-        if (content) editor.innerHTML = content;
-        lenEl.textContent = editor.innerText.length;
-      }
-
-      // تغيير اسم الموقع
-      siteInput.oninput = () => {
-        siteName.textContent = siteInput.value || "موقعي الشخصي";
-        logoTxt.textContent = (siteInput.value[0] || "م");
+      // رفع الصور
+      const fileUpload = document.getElementById('fileUpload');
+      fileUpload.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image')) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            const img = document.createElement('img');
+            img.src = evt.target.result;
+            img.style.maxWidth = '100%';
+            editor.appendChild(img);
+            saveHistory(editor.innerHTML);
+            showToast("تم رفع الصورة");
+          }
+          reader.readAsDataURL(file);
+        }
       }
 
     </script>
+  </div>
 </body>
 
 </html>
